@@ -1,82 +1,55 @@
 #!/usr/bin/env python3
-'''
-    This sample program shows how to control a motor using a joystick. In the
-    operator control part of the program, the joystick is read and the value
-    is written to the motor.
-    Joystick analog values range from -1 to 1 and speed controller inputs also
-    range from -1 to 1 making it easy to work together. The program also delays
-    a short time in the loop to allow other threads to run. This is generally
-    a good idea, especially since the joystick values are only transmitted
-    from the Driver Station once every 20ms.
-'''
+
 import wpilib
+from wpilib.command import Scheduler
 
-class Bob(wpilib.SampleRobot):
-    
-    #: update every 0.005 seconds/5 milliseconds (200Hz)
-    kUpdatePeriod = 0.005
+from oi import OI
 
-    def robotInit(self):
-        '''Robot initialization function'''
-        
-        self.motor1 = wpilib.CANTalon(2)        # initialize the motor as a Talon on channel 1
-        self.motor2 = wpilib.CANTalon(3)   
-        
-        self.motor3 = wpilib.CANTalon(4).reverseOutput(True)    #reverses the motor set so that it goes into the right direction
-        self.motor4 = wpilib.CANTalon(1).reverseOutput(True)
-        
-        self.stick = wpilib.Joystick(0)     # initialize the joystick on port 0
-        self.stick2 = wpilib.Joystick(1)    # initialize the joystick on port 1
+from subsystems.drivetrain import DriveTrain
 
-        self.switch = wpilib.DigitalInput(9)
-        self.piston1 = wpilib.DoubleSolenoid(0,1)
-        self.encoder1 = wpilib.Encoder(0,1)
+class Bob(wpilib.IterativeRobot):
 
+	#: update every 0.005 seconds/5 milliseconds (200Hz)
+	kUpdatePeriod = 0.005
 
-        if self.isReal():
-           self.compressor = wpilib.Compressor()
-           self.compressor.start() 
+	def robotInit(self):
+		"""
+		This function is called upon program startup and
+		should be used for any initialization code.
+		"""
+		self.drivetrain = DriveTrain(self)
+		self.oi = OI(self)
 
-    def autonomous(self):
-        '''Called when autonomous mode is enabled.'''
+		wpilib.SmartDashboard.putData(self.drivetrain)
 
-        while self.isAutonomous() and self.isEnabled():
-            wpilib.Timer.delay(0.01)
+		
+	def autonomousInit(self): #has nothing so far probably wont who knows
 
-    def operatorControl(self):
-        '''Runs the motor from a joystick.'''
-        while self.isOperatorControl() and self.isEnabled():
-            
-            # Set the motor's output.
-            # This takes a number from -1 (100% speed in reverse) to
-            # +1 (100% speed going forward)
-            
-            self.motor2.setFeedbackDevice()
+		self.auto_loop_counter = 0 #teaches the roboto how to count
 
-            #Enables the dashboard to show the boolean of the object
-            wpilib.SmartDashboard.putBoolean('Limit Switch', self.switch.get())
-            wpilib.SmartDashboard.putBoolean('Compressor', self.compressor.enabled())
-            wpilib.SmartDashboard.putBoolean('TRIGGER', self.stick.getTrigger())
+	def autonomousPeriodic(self):
+		"""This function is called periodically during autonomous."""
 
-            #Still have no idea how this worked
-            wpilib.SmartDashboard.putNumber('Encoder Distance', self.motor2.getEncPosition())
+		# if self.auto_loop_counter < 100:
+		#     self.robot_drive.drive(-0.5, 0) #drive forward
+		#     self.auto_loop_counter += 1
+		# else:
+		#     self.robot_drive.drive(0,0)
+		
 
-            #reacts to joystick0
-            self.motor1.set(self.stick1.getY())
-            self.motor2.set(self.stick1.getY())
+	def teleopPeriodic(self):
+		"""This function is called periodically during operator control."""
+		#cancel out autonomous
+		Scheduler.getInstance().run()
+		self.log()
+		
 
-            #reacts to joystick1
-            self.motor3.set(self.stick2.getY())
-            self.motor4.set(self.stick2.getY())
+	def testPeriodic(self):
+		"""This function is called periodically during test mode."""
+		wpilib.LiveWindow.run()
 
-            if self.stick.getTrigger():
-                self.piston1.set(1)
-            else:
-                self.piston1.set(2)
-
-            wpilib.Timer.delay(self.kUpdatePeriod)  # wait 5ms to the next update
-            
-
+	def log(self):
+		self.drivetrain.log()
 
 if __name__ == "__main__":
-    wpilib.run(Bob)
+	wpilib.run(Bob)
