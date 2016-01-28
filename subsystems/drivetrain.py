@@ -1,5 +1,6 @@
 import wpilib
 from wpilib.command import Subsystem
+from networktables import NetworkTable
 
 from commands.tankdrive_with_joystick import TankDriveWithJoystick
 
@@ -34,7 +35,7 @@ class DriveTrain(Subsystem):
 		self.setDefaultCommand(TankDriveWithJoystick(self.robot))
 
 	def log(self):
-		wpilib.SmartDashboard.putNumber("Dummy Distance", self.motor_encoder)
+		pass
 
 	def driveManual(self,left,right):
 		'''Tank style driving

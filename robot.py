@@ -2,6 +2,7 @@
 
 import wpilib
 from wpilib.command import Scheduler
+from networktables import NetworkTable
 
 from oi import OI
 
