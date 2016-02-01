@@ -3,7 +3,7 @@
 import wpilib
 from wpilib.command import Scheduler
 from networktables import NetworkTable
-
+import logging
 from oi import OI
 
 from subsystems.drivetrain import DriveTrain
@@ -20,8 +20,8 @@ class Bob(wpilib.IterativeRobot):
 		"""
 		self.drivetrain = DriveTrain(self)
 		self.oi = OI(self)
+		self.sd = NetworkTable.getTable("SmartDashboard")
 
-		wpilib.SmartDashboard.putData(self.drivetrain)
 
 		
 	def autonomousInit(self): #has nothing so far probably wont who knows
@@ -41,8 +41,10 @@ class Bob(wpilib.IterativeRobot):
 	def teleopPeriodic(self):
 		"""This function is called periodically during operator control."""
 		#cancel out autonomous
-		Scheduler.getInstance().run()
-		self.log()
+		while self.isOperatorControl() and self.isEnabled():
+
+			Scheduler.getInstance().run()
+			self.log()
 		
 
 	def testPeriodic(self):
@@ -51,6 +53,8 @@ class Bob(wpilib.IterativeRobot):
 
 	def log(self):
 		self.drivetrain.log()
+		self.sd.putNumber('someNumber', 1234)
+
 
 if __name__ == "__main__":
 	wpilib.run(Bob)
